@@ -1,6 +1,6 @@
 var gStatus = "off";
 var gShowWinOrTab = true;
-var gNormalWinOrPopup = true;
+var gNormalWinOrPopup = false;
 var gTimer = null;
 var gSelectedTxt = null;
 var gTransWinId = 0;
@@ -42,17 +42,16 @@ function toggleButton() {
     showNotification("Notification!", msg);
 }
 
-function createTranslator(transUrl) {
-
+function createTranslator(bingUrl) {
+    var transUrl = "translator.html?bigroc=" + btoa(bingUrl);
     var creating = null;
 
     if (gShowWinOrTab) {
         var windata = {
             type: "normal",
-            height: 660,
+            height: 600,
             width: 400,
             url: transUrl,
-            //allowScriptsToCloseOptional: true,
         };
         if (gNormalWinOrPopup) {
             windata.type = "normal";
@@ -78,37 +77,55 @@ function createTranslator(transUrl) {
 
 }
 
-function updateTranslator(transUrl) {
+function notifyTranslator(win, bingUrl) {
+
+    var msgData = {
+        "name": "urlUpdated",
+        "data": bingUrl
+    };
+
+    var queryData = {
+        "windowId": win.id,
+    }
+    var tabsgot = browser.tabs.query(queryData);
+    tabsgot.then((tabs) => {
+            var sent = browser.tabs.sendMessage(tabs[0].id, msgData);
+            sent.then(() => {
+                    //showNotification("SendMessage:", "Send Success !!!");
+                },
+                (err) => {
+                    showNotification("SendMessage:", "!" + err);
+                });
+        },
+        (err) => {
+            showNotification("Getting Tabs:", "!" + err);
+        });
+
+
+}
+
+function updateTranslator(win, bingUrl) {
     var winData = {
         focused: true,
     }
 
-    var updated = browser.windows.update(gTransWinId, winData);
+    var updated = browser.windows.update(win.id, winData);
 
-    updated.then(function() {
-        showNotification("Update:", "Update Success !!!");
-    }, function() {
-        showNotification("Update:", "Update Failured !!!");
-    });
+    updated.then(() => {
+            //showNotification("Update:", "Update Success !!!");
+            notifyTranslator(win, bingUrl);
+        },
+        (err) => {
+            showNotification("Update Translator:", "!" + err);
+        });
 
 }
 
-function logWin(windowInfo, url) {
-    console.log("======WindowInfo Is:");
-    console.log(windowInfo);
-    console.log(url);
-}
-
-function onError(error) {
-    console.log("Error Is:");
-    console.log(`Error: ${error}`);
-}
-
-function showTranslator(transUrl) {
+function showTranslator(bingUrl) {
 
     var gotWin = browser.windows.get(gTransWinId);
-    gotWin.then((win) => updateTranslator(transUrl),
-        (err) => createTranslator(transUrl));
+    gotWin.then((win) => updateTranslator(win, bingUrl),
+        (err) => createTranslator(bingUrl));
 
 }
 
@@ -129,8 +146,8 @@ function txtSelected(txt) {
         if (txt) {
 
             gTimer = setTimeout(function() {
-                var transUrl = "translator.html?bigroc=" + btoa(gTranslatorUrl + txt);
-                showTranslator(transUrl);
+                var bingUrl = gTranslatorUrl + txt;
+                showTranslator(bingUrl);
             }, 200);
         }
     }

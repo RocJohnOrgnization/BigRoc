@@ -14,14 +14,26 @@ function getQueryStrings() {
     return assoc;
 }
 
+function updateUrl(url) {
+    var frm = document.getElementById("idBingFrame");
+    if (frm) {
+        frm.src = url;
+    }
+}
+
 function transLoad() {
     var qss = getQueryStrings();
 
     var bigroc = atob(qss["bigroc"]);
+    updateUrl(bigroc);
 
-    var frm = document.getElementById("idBingFrame");
-    if(frm){
-        frm.src = bigroc;
+}
+
+function msgReceived(msg) {
+    if (msg.name == "urlUpdated") {
+        updateUrl(msg.data);
     }
 }
+
 transLoad();
+browser.runtime.onMessage.addListener(msgReceived);
