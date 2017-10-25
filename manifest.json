@@ -1,0 +1,32 @@
+{
+    "manifest_version": 2,
+    "name": "BigRoc Tools",
+    "description": "The add-on tools from RocJohn",
+    "version": "1.0",
+    "homepage_url": "http://www.rocjohn.com",
+
+    "permissions": ["notifications", "storage", "webRequest", "webRequestBlocking", "<all_urls>"],
+
+    "browser_action":
+    {
+        "default_icon":
+        {
+            "46": "icons/bigroc_46_46.png"
+        },
+        "default_title": "BigRoc"
+    },
+
+    "background":
+    {
+        "scripts": ["background.js"]
+    },
+
+    "content_scripts": [
+    {
+        "matches": ["<all_urls>"],
+        "js": ["content.js"]
+    }],
+
+    "content_security_policy": "script-src 'self'; object-src 'self'"
+
+}
