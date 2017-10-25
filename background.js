@@ -70,10 +70,11 @@ function createTranslator(bingUrl) {
     }
 
     creating.then((wdw) => {
-        console.log("Created Win Info Is:");
-        console.log(wdw);
-        gTransWinId = wdw.id;
-    })
+            gTransWinId = wdw.id;
+        },
+        (err) => {
+            showNotification("Creating Window:", "!" + err);
+        })
 
 }
 
