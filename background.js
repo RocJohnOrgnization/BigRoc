@@ -4,8 +4,9 @@ var gNormalWinOrPopup = false;
 var gTimer = null;
 var gSelectedTxt = null;
 var gTransWinId = 0;
+var gTransTabId = 0;
 
-var gUrlPattern = "*://*.bing.com/*";
+var gUrlPattern = "*://*.bing.com/dict/*";
 
 var gDefaultUserAgent = "Mozilla/5.0 (Linux; Android 4.1.1; Galaxy Nexus Build/JRO03C) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.166 Mobile Safari/535.19";
 var gIosUserAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 9_2 like Mac OS X) AppleWebKit/601.1 (KHTML, like Gecko) CriOS/47.0.2526.70 Mobile/13C71 Safari/601.1.46";
@@ -42,6 +43,19 @@ function toggleButton() {
     showNotification("Notification!", msg);
 }
 
+function getTransTabId(transWinId) {
+    var queryData = {
+        "windowId": transWinId,
+    }
+    var tabsgot = browser.tabs.query(queryData);
+    tabsgot.then((tabs) => {
+            gTransTabId = tabs[0].id;
+        },
+        (err) => {
+            showNotification("Getting Tabs:", "!" + err);
+        });
+}
+
 function createTranslator(bingUrl) {
     var transUrl = "translator.html?bigroc=" + btoa(bingUrl);
     var creating = null;
@@ -71,6 +85,7 @@ function createTranslator(bingUrl) {
 
     creating.then((wdw) => {
             gTransWinId = wdw.id;
+            getTransTabId(gTransWinId);
         },
         (err) => {
             showNotification("Creating Window:", "!" + err);
@@ -84,25 +99,13 @@ function notifyTranslator(win, bingUrl) {
         "name": "urlUpdated",
         "data": bingUrl
     };
-
-    var queryData = {
-        "windowId": win.id,
-    }
-    var tabsgot = browser.tabs.query(queryData);
-    tabsgot.then((tabs) => {
-            var sent = browser.tabs.sendMessage(tabs[0].id, msgData);
-            sent.then(() => {
-                    //showNotification("SendMessage:", "Send Success !!!");
-                },
-                (err) => {
-                    showNotification("SendMessage:", "!" + err);
-                });
+    var sent = browser.tabs.sendMessage(gTransTabId, msgData);
+    sent.then(() => {
+            //showNotification("SendMessage:", "Send Success !!!");
         },
         (err) => {
-            showNotification("Getting Tabs:", "!" + err);
+            showNotification("SendMessage:", "!" + err);
         });
-
-
 }
 
 function updateTranslator(win, bingUrl) {
@@ -156,9 +159,11 @@ function txtSelected(txt) {
 
 function changeUserAgent(req) {
     if (gStatus == "on") {
-        for (var header of req.requestHeaders) {
-            if (header.name.toLowerCase() === "user-agent") {
-                header.value = gDefaultUserAgent;
+        if (req.tabId == gTransTabId) {
+            for (var header of req.requestHeaders) {
+                if (header.name.toLowerCase() === "user-agent") {
+                    header.value = gDefaultUserAgent;
+                }
             }
         }
     }
