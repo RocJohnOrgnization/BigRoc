@@ -179,4 +179,7 @@ function msgReceived(msg) {
 browser.browserAction.onClicked.addListener(toggleButton);
 browser.runtime.onMessage.addListener(msgReceived);
 
-browser.webRequest.onBeforeSendHeaders.addListener(changeUserAgent, { urls: [gUrlPattern] }, ["blocking", "requestHeaders"]);
+browser.webRequest.onBeforeSendHeaders.addListener(changeUserAgent, 
+    { urls: [gUrlPattern] }, ["blocking", "requestHeaders"]);
+
+
